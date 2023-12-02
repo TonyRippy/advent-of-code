@@ -23,33 +23,28 @@ const DIGITS: [(&str, u32); 18] = [
     ("nine", 9),
 ];
 
-fn find_digit<F>(find_func: F, ordering: Ordering) -> u32
+fn find_digit<F>(find_func: F, ordering: Ordering) -> Option<u32>
 where
     F: Fn(&str) -> Option<usize>,
 {
-    let mut best_index = match ordering {
-        Ordering::Less => usize::MAX,
-        Ordering::Greater => usize::MIN,
-        Ordering::Equal => panic!("invalid ordering"),
-    };
-    let mut best_digit = 0;
-    for &(s, d) in DIGITS.iter() {
-        if let Some(i) = find_func(s) {
-            let cmp = i.cmp(&best_index);
-            if cmp == ordering || cmp == Ordering::Equal {
-                best_index = i;
-                best_digit = d;
+    DIGITS
+        .iter()
+        .filter_map(|&(s, d)| find_func(s).map(|i| (i, d)))
+        .reduce(|(ai, ad), (bi, bd)| {
+            if bi.cmp(&ai) == ordering {
+                (bi, bd)
+            } else {
+                (ai, ad)
             }
-        }
-    }
-    best_digit
+        })
+        .map(|(_, d)| d)
 }
 
-fn find_first_digit(input: &str) -> u32 {
+fn find_first_digit(input: &str) -> Option<u32> {
     find_digit(|s| input.find(s), Ordering::Less)
 }
 
-fn find_last_digit(input: &str) -> u32 {
+fn find_last_digit(input: &str) -> Option<u32> {
     find_digit(|s| input.rfind(s), Ordering::Greater)
 }
 
@@ -61,8 +56,8 @@ fn main() -> Result<(), std::io::Error> {
     let reader = std::io::BufReader::new(file);
     for l in reader.lines() {
         let line = l.unwrap();
-        let first = find_first_digit(&line);
-        let last = find_last_digit(&line);
+        let first = find_first_digit(&line).unwrap();
+        let last = find_last_digit(&line).unwrap();
         let number = first * 10 + last;
         println!("{:?} --> ({}, {}) --> {}", &line, first, last, number);
         sum += number;
@@ -75,8 +70,14 @@ mod test {
     use super::*;
 
     #[test]
+    fn test_first() {
+        assert_eq!(find_first_digit("1"), Some(1));
+        assert_eq!(find_first_digit("a2c"), Some(2));
+    }
+
+    #[test]
     fn test_last() {
-        assert_eq!(find_last_digit("1"), 1);
-        assert_eq!(find_last_digit("4qtfn"), 4);
+        assert_eq!(find_last_digit("1"), Some(1));
+        assert_eq!(find_last_digit("4qtfn"), Some(4));
     }
 }
