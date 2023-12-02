@@ -76,7 +76,7 @@ fn main() -> Result<(), std::io::Error> {
         let first = digits.first().unwrap();
         let last = digits.last().unwrap();
         let number = first * 10 + last;
-        println!("{:?} --> {:?} --> {:?}", &line, digits, number);
+        println!("{:?} --> ({}, {}) --> {}", &line, first, last, number);
         sum += number;
     }
     println!("SUM = {}", sum);
