@@ -50,10 +50,10 @@ fn find_last_digit(input: &str) -> Option<u32> {
 
 fn main() -> Result<(), std::io::Error> {
     let fname = std::env::args().nth(1).unwrap();
-
-    let mut sum = 0;
     let file = File::open(fname)?;
     let reader = std::io::BufReader::new(file);
+
+    let mut sum = 0;
     for l in reader.lines() {
         let line = l.unwrap();
         let first = find_first_digit(&line).unwrap();

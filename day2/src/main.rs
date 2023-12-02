@@ -1,14 +1,13 @@
 use std::fs::File;
 use std::io::BufRead;
 
-
 fn parse_line(line: &str) -> (usize, (usize, usize, usize)) {
-    let (mut red, mut green, mut blue) = (0,0,0);
+    let (mut red, mut green, mut blue) = (0, 0, 0);
 
     assert_eq!(&line[0..5], "Game ");
     let i = line.find(':').unwrap();
     let game = line[5..i].parse::<usize>().unwrap();
-    for set in line[i+1..].split(';') {
+    for set in line[i + 1..].split(';') {
         for sample in set.split(',').map(str::trim) {
             let tokens = sample.split_ascii_whitespace().collect::<Vec<_>>();
             assert_eq!(tokens.len(), 2);
@@ -18,17 +17,17 @@ fn parse_line(line: &str) -> (usize, (usize, usize, usize)) {
                     if n > red {
                         red = n;
                     }
-                },
+                }
                 "green" => {
                     if n > green {
                         green = n;
                     }
-                },
+                }
                 "blue" => {
                     if n > blue {
                         blue = n;
                     }
-                },
+                }
                 _ => panic!("Unknown color: {}", tokens[1]),
             }
         }
@@ -47,12 +46,11 @@ fn power(game: (usize, usize, usize)) -> usize {
 fn main() -> Result<(), std::io::Error> {
     // let fname = std::env::args().nth(1).unwrap();
     let fname = "input.txt";
-
-    let guess = (12,13,14);
-    let mut sum = 0;
-
     let file = File::open(fname)?;
     let reader = std::io::BufReader::new(file);
+
+    let mut sum = 0;
+    let guess = (12, 13, 14);
     for l in reader.lines() {
         let line = l.unwrap();
         let (id, game) = parse_line(&line);
