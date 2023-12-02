@@ -1,67 +1,56 @@
+use std::cmp::Ordering;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::BufRead;
 
-fn translate_digits(input: &str) -> String {
-    input
-        //.replace("zero", "0")
-        .replace("one", "1")
-        .replace("two", "2")
-        .replace("three", "3")
-        .replace("four", "4")
-        .replace("five", "5")
-        .replace("six", "6")
-        .replace("seven", "7")
-        .replace("eight", "8")
-        .replace("nine", "9")
-}
+const DIGITS: [(&str, u32); 18] = [
+    ("1", 1),
+    ("2", 2),
+    ("3", 3),
+    ("4", 4),
+    ("5", 5),
+    ("6", 6),
+    ("7", 7),
+    ("8", 8),
+    ("9", 9),
+    ("one", 1),
+    ("two", 2),
+    ("three", 3),
+    ("four", 4),
+    ("five", 5),
+    ("six", 6),
+    ("seven", 7),
+    ("eight", 8),
+    ("nine", 9),
+];
 
-fn leading_digit(input: &str) -> (Option<u32>, usize) {
-    let c = input.chars().next().unwrap();
-    if c.is_ascii_digit() {
-        return (Some(c.to_digit(10).unwrap()), 1);
-    }
-    if input.starts_with("one") {
-        return (Some(1), 3);
-    }
-    if input.starts_with("two") {
-        return (Some(2), 3);
-    }
-    if input.starts_with("three") {
-        return (Some(3), 5);
-    }
-    if input.starts_with("four") {
-        return (Some(4), 4);
-    }
-    if input.starts_with("five") {
-        return (Some(5), 4);
-    }
-    if input.starts_with("six") {
-        return (Some(6), 3);
-    }
-    if input.starts_with("seven") {
-        return (Some(7), 5);
-    }
-    if input.starts_with("eight") {
-        return (Some(8), 5);
-    }
-    if input.starts_with("nine") {
-        return (Some(9), 4);
-    }
-    (None, 1)
-}
-
-fn get_digits(input: &str) -> Vec<u32> {
-    let mut out = Vec::new();
-    let mut i = 0;
-    while i < input.len() {
-        let (digit, step) = leading_digit(&input[i..]);
-        if let Some(d) = digit {
-            out.push(d);
+fn find_digit<F>(find_func: F, ordering: Ordering) -> u32
+where
+    F: Fn(&str) -> Option<usize>,
+{
+    let mut best_index = match ordering {
+        Ordering::Less => usize::MAX,
+        Ordering::Greater => usize::MIN,
+        Ordering::Equal => panic!("invalid ordering"),
+    };
+    let mut best_digit = 0;
+    for &(s, d) in DIGITS.iter() {
+        if let Some(i) = find_func(s) {
+            let cmp = i.cmp(&best_index);
+            if cmp == ordering || cmp == Ordering::Equal {
+                best_index = i;
+                best_digit = d;
+            }
         }
-        //i += step;
-        i += 1;
     }
-    out
+    best_digit
+}
+
+fn find_first_digit(input: &str) -> u32 {
+    find_digit(|s| input.find(s), Ordering::Less)
+}
+
+fn find_last_digit(input: &str) -> u32 {
+    find_digit(|s| input.rfind(s), Ordering::Greater)
 }
 
 fn main() -> Result<(), std::io::Error> {
@@ -72,13 +61,22 @@ fn main() -> Result<(), std::io::Error> {
     let reader = std::io::BufReader::new(file);
     for l in reader.lines() {
         let line = l.unwrap();
-        let digits = get_digits(&line);
-        let first = digits.first().unwrap();
-        let last = digits.last().unwrap();
+        let first = find_first_digit(&line);
+        let last = find_last_digit(&line);
         let number = first * 10 + last;
         println!("{:?} --> ({}, {}) --> {}", &line, first, last, number);
         sum += number;
     }
     println!("SUM = {}", sum);
     Ok(())
+}
+
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_last() {
+        assert_eq!(find_last_digit("1"), 1);
+        assert_eq!(find_last_digit("4qtfn"), 4);
+    }
 }
