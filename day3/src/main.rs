@@ -153,10 +153,3 @@ fn main() -> Result<(), std::io::Error> {
     println!("Sum = {}", sum);
     Ok(())
 }
-
-mod test {
-    use super::*;
-
-    #[test]
-    fn test_something() {}
-}
