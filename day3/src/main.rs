@@ -22,7 +22,7 @@ impl Number {
         (min_y, max_y)
     }
 
-    fn is_next_to_any_symbol(&self, symbols: &Vec<Vec<usize>>) -> bool {
+    pub fn is_next_to_any_symbol(&self, symbols: &Vec<Vec<usize>>) -> bool {
         let (min_x, max_x) = self.adjacent_x_range();
         let (min_y, mut max_y) = self.adjacent_y_range();
         if max_y >= symbols.len() {
@@ -38,7 +38,7 @@ impl Number {
         false
     }
 
-    fn is_next_to(&self, x: usize, y: usize) -> bool {
+    pub fn is_next_to(&self, x: usize, y: usize) -> bool {
         let (min_y, max_y) = self.adjacent_y_range();
         if y < min_y || y > max_y {
             return false;
@@ -47,13 +47,13 @@ impl Number {
         x >= min_x && x <= max_x
     }
 
-    fn get_value(&self, lines: &[String]) -> usize {
+    pub fn get_value(&self, lines: &[String]) -> usize {
         let line = &lines[self.y];
         line[self.x1..=self.x2].parse::<usize>().unwrap()
     }
 }
 
-fn find_numbers(line_number: usize, line: &str) -> Vec<Number> {
+fn find_numbers_in_line(line_number: usize, line: &str) -> Vec<Number> {
     let digits = line
         .chars()
         .enumerate()
@@ -74,7 +74,7 @@ fn find_numbers(line_number: usize, line: &str) -> Vec<Number> {
         .collect::<Vec<_>>()
 }
 
-fn find_symbols(line: &str) -> Vec<usize> {
+fn find_symbols_in_line(line: &str) -> Vec<usize> {
     line.chars()
         .enumerate()
         .filter(|&(_, c)| !(c == '.' || c.is_ascii_digit()))
@@ -82,7 +82,7 @@ fn find_symbols(line: &str) -> Vec<usize> {
         .collect::<Vec<_>>()
 }
 
-fn find_gears(lines: &Vec<String>) -> Vec<(usize, usize)> {
+fn find_all_gears(lines: &[String]) -> Vec<(usize, usize)> {
     lines
         .iter()
         .enumerate()
@@ -109,7 +109,7 @@ fn main() -> Result<(), std::io::Error> {
     let numbers = lines
         .iter()
         .enumerate()
-        .map(|(i, l)| find_numbers(i, l))
+        .map(|(i, line)| find_numbers_in_line(i, line))
         .collect::<Vec<_>>();
     println!("Numbers = {:?}", &numbers);
 
@@ -117,16 +117,16 @@ fn main() -> Result<(), std::io::Error> {
 
     // PART 1
 
-    // let symbols = lines.iter().map(|s| find_symbols(s)).collect::<Vec<_>>();
+    // let symbols = lines.iter().map(|line| find_symbols_in_line(line)).collect::<Vec<_>>();
     // println!("Symbols = {:?}", &symbols);
     //
     // for n in numbers.iter().flatten() {
     //     print!("Number = {:?}", n);
     //     if n.is_next_to_any_symbol(&symbols) {
-    //         print!(" - next to symbol: ");
-    //         let n = lines[n.y][n.x1..=n.x2].parse::<usize>().unwrap();
-    //         println!("{}", n);
-    //         sum += n;
+    //         print!(" - is next to symbol");
+    //         let value = n.get_value(&lines);
+    //         println!(" (value = {})", value);
+    //         sum += value;
     //     } else {
     //         println!(" - not next to symbol");
     //     }
@@ -134,7 +134,7 @@ fn main() -> Result<(), std::io::Error> {
 
     // PART 2
 
-    let gears = find_gears(&lines);
+    let gears = find_all_gears(&lines);
     println!("Gears = {:?}", &gears);
 
     for gear in gears {
