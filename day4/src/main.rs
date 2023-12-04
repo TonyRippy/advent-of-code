@@ -5,22 +5,16 @@ use std::io::BufRead;
 fn matches_in_card(line: &str) -> usize {
     let start = line.find(':').unwrap() + 1;
     let mid = line.find('|').unwrap();
-    let mut winning = HashSet::new();
-    for n in line[start..mid]
+    let winning = line[start..mid]
         .split_whitespace()
         .filter(|&x| !x.is_empty())
-        .map(|x| x.parse::<i64>().unwrap())
-    {
-        winning.insert(n);
-    }
-    let mut have = HashSet::new();
-    for n in line[mid + 1..]
+        .flat_map(|x| x.parse::<usize>())
+        .collect::<HashSet<usize>>();
+    let have = line[mid + 1..]
         .split_whitespace()
         .filter(|&x| !x.is_empty())
-        .map(|x| x.parse::<i64>().unwrap())
-    {
-        have.insert(n);
-    }
+        .flat_map(|x| x.parse::<usize>())
+        .collect::<HashSet<usize>>();
     winning.intersection(&have).count()
 }
 
@@ -52,7 +46,7 @@ fn main() -> Result<(), std::io::Error> {
         let matches = matches_in_card(&lines[i]);
         println!("{}: count = {}, matches = {}", i, count, matches);
         if matches > 0 {
-            for j in i+1..i+matches+1 {
+            for j in i + 1..i + matches + 1 {
                 counts[j] += count;
             }
         }
