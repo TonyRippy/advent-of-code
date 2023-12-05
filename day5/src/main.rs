@@ -16,7 +16,7 @@ struct MapEntry {
 
 impl MapEntry {
     fn parse(line: &str) -> Self {
-        let mut parts = line
+        let parts = line
             .split_ascii_whitespace()
             .flat_map(|part| part.parse::<usize>())
             .collect::<Vec<usize>>();
