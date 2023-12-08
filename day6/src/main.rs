@@ -65,7 +65,6 @@ fn main() -> Result<(), std::io::Error> {
 
     // println!("Answer: {}", answer);
 
-
     // PART 2
 
     let mut it = reader.lines().map(|x| x.unwrap());
