@@ -8,3 +8,5 @@ amount of time, not necessarily a good sample of my work in general.
 
 I may try to refine some of the solutions if I find the probelm interesting.
 If this happens you will see changes in the revision history.
+
+🎄🎄🎄 🎅 🎄🎄🎄 🦌
