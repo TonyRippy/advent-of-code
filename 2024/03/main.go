@@ -89,7 +89,6 @@ func parsePart2(input string, c chan<- op) {
 	close(c)
 }
 
-
 func applyAll(c <-chan op) int {
 	s := newState()
 	for o := range c {
