@@ -9,21 +9,31 @@ import (
 	"strings"
 )
 
+type direction int
+
+const (
+	N direction = iota
+	S
+	E
+	W
+)
+
 type point struct {
 	x, y int
 }
 
 func (p point) next(d direction) point {
-	return point{p.x + d.dx, p.y + d.dy}
-}
-
-type direction struct {
-	name   string
-	dx, dy int
-}
-
-func (d direction) String() string {
-	return d.name
+	switch d {
+	case N:
+		return point{p.x, p.y - 1}
+	case S:
+		return point{p.x, p.y + 1}
+	case E:
+		return point{p.x + 1, p.y}
+	case W:
+		return point{p.x - 1, p.y}
+	}
+	panic("invalid direction")
 }
 
 func (d direction) Turn90() direction {
@@ -40,15 +50,8 @@ func (d direction) Turn90() direction {
 	panic("invalid direction")
 }
 
-var (
-	N  = direction{"N", 0, -1}
-	S  = direction{"S", 0, 1}
-	E  = direction{"E", 1, 0}
-	W  = direction{"W", -1, 0}
-)
-
 type floor struct {
-	lines []string
+	lines [][]byte
 	guard point
 }
 
@@ -60,32 +63,21 @@ func readFloor(filename string) (*floor, error) {
 	defer file.Close()
 
 	var guard point
-	var lines []string
+	var lines [][]byte
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		i := strings.IndexRune(line, '^')
+		i := strings.IndexByte(line, '^')
 		if i >= 0 {
 			guard = point{i, len(lines)}
 		}
-		lines = append(lines, line)
+		lines = append(lines, []byte(line))
 	}
 	return &floor{lines, guard}, nil
 }
 
-func (p *floor) get(x, y int) (byte, bool) {
-	if y < 0 || y >= len(p.lines) {
-		return 0, false
-	}
-	line := p.lines[y]
-	if x < 0 || x >= len(line) {
-		return 0, false
-	}
-	return line[x], true
-}
-
 func (f *floor) set(x, y int, b byte) {
-	f.lines[y] = f.lines[y][:x] + string(b) + f.lines[y][x+1:]
+	f.lines[y][x] = b
 }
 
 func (f *floor) isExit(p point) bool {
@@ -93,10 +85,8 @@ func (f *floor) isExit(p point) bool {
 }
 
 func (f *floor) isObstruction(p point) bool {
-	if b, ok := f.get(p.x, p.y); ok && (b == '#' || b == 'O') {
-		return true
-	}
-	return false
+	b := f.lines[p.y][p.x]
+	return b == '#' || b == 'O'
 }
 
 func (f *floor) part1() (map[point][]direction, bool) {
@@ -117,7 +107,7 @@ func (f *floor) part1() (map[point][]direction, bool) {
 		if ok && slices.Contains(ds, d) {
 			return visited, false
 		}
-		visited[next] = append(ds, d) 
+		visited[next] = append(ds, d)
 		guard = next
 	}
 }
@@ -126,14 +116,14 @@ func (f *floor) part2(visited map[point][]direction) int {
 	// Loop through all positions the guard would visit, replacing open space ('.') with an obstacle. ('O')
 	var loops int
 	for p := range visited {
-		if b, _ := f.get(p.x, p.y); b != '.' {
+		if f.lines[p.y][p.x] != '.' {
 			continue
 		}
-		f.set(p.x, p.y, 'O')
+		f.lines[p.y][p.x] = 'O'
 		if _, ok := f.part1(); !ok {
 			loops++
 		}
-		f.set(p.x, p.y, '.')
+		f.lines[p.y][p.x] = '.'
 	}
 	return loops
 }
