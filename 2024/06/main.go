@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"strings"
 )
 
@@ -66,7 +67,6 @@ func readFloor(filename string) (*floor, error) {
 		i := strings.IndexRune(line, '^')
 		if i >= 0 {
 			guard = point{i, len(lines)}
-			line = line[:i] + "X" + line[i+1:]
 		}
 		lines = append(lines, line)
 	}
@@ -93,34 +93,49 @@ func (f *floor) isExit(p point) bool {
 }
 
 func (f *floor) isObstruction(p point) bool {
-	if b, ok := f.get(p.x, p.y); ok && b == '#' {
+	if b, ok := f.get(p.x, p.y); ok && (b == '#' || b == 'O') {
 		return true
 	}
 	return false
 }
 
-func (f *floor) walk(guard point, d direction) int {
-	marked := 1
+func (f *floor) part1() (map[point][]direction, bool) {
+	guard := f.guard
+	d := N
+	visited := make(map[point][]direction)
+	visited[guard] = []direction{N}
 	for {
 		next := guard.next(d)
 		if f.isExit(next) {
-			return marked
+			return visited, true
 		}
 		for f.isObstruction(next) {
 			d = d.Turn90()
 			next = guard.next(d)
 		}
-		b, ok := f.get(next.x, next.y)
-		if !ok { 
-			panic(fmt.Sprintf("Unexpected position %v", next))
+		ds, ok := visited[next]
+		if ok && slices.Contains(ds, d) {
+			return visited, false
 		}
-		if b != 'X' {
-			if b != '.' { panic(fmt.Sprintf("Unexpected value at position %v: %q", next, b)) } 
-			f.set(next.x, next.y, 'X')
-			marked += 1
-		}
+		visited[next] = append(ds, d) 
 		guard = next
 	}
+}
+
+func (f *floor) part2(visited map[point][]direction) int {
+	// Loop through all positions the guard would visit, replacing open space ('.') with an obstacle. ('O')
+	var loops int
+	for p := range visited {
+		if b, _ := f.get(p.x, p.y); b != '.' {
+			continue
+		}
+		f.set(p.x, p.y, 'O')
+		if _, ok := f.part1(); !ok {
+			loops++
+		}
+		f.set(p.x, p.y, '.')
+	}
+	return loops
 }
 
 func main() {
@@ -128,6 +143,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	marked := floor.walk(floor.guard, N)
-	fmt.Printf("Part 1: walked %d steps\n", marked)
+	visited, _ := floor.part1()
+	fmt.Printf("Part 1: walked %d steps\n", len(visited))
+	fmt.Printf("Part 2: %d loops\n", floor.part2(visited))
 }
