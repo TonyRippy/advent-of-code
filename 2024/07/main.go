@@ -95,13 +95,14 @@ func Part1(eqs []*Equation) int {
 
 // Returns the prefix of value after suffix removed
 func isSuffixOf(suffix, value int) (int, bool) {
-	if suffix == 0 {
-		return value, true
-	}
-	if (suffix % 10) != (value % 10) {
+	suffixstr := strconv.Itoa(suffix)
+	valuestr := strconv.Itoa(value)
+	if !strings.HasSuffix(valuestr, suffixstr) {
 		return 0, false
 	}
-	return isSuffixOf(suffix / 10, value / 10)
+	prefixstr := valuestr[:len(valuestr)-len(suffixstr)]
+	prefix, _ := strconv.Atoi(prefixstr)
+	return prefix, true
 }
 
 func CheckPart2(tv int, args []int) bool {
