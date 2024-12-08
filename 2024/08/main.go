@@ -23,14 +23,11 @@ type Map struct {
 	Lines    []string
 	Antennas AntennaLists
 	W, H     int
+	debug    bool
 }
 
 func (m *Map) InBounds(p Point) bool {
 	return p.X >= 0 && p.X < m.W && p.Y >= 0 && p.Y < m.H
-}
-
-func (m *Map) At(p Point) rune {
-	return rune(m.Lines[p.Y][p.X])
 }
 
 func (m *Map) parseAntennas(line string, y int) {
@@ -96,21 +93,15 @@ func combinations(n int) iter.Seq2[int, int] {
 	}
 }
 
-func antinodes1(p1 Point, p2 Point) iter.Seq[Point] {
+func antinodes1(_ *Map, p1 Point, p2 Point) iter.Seq[Point] {
 	return func(yield func(Point) bool) {
 		dx := p2.X - p1.X
 		dy := p2.Y - p1.Y
 		antinode := Point{p1.Y - dy, p1.X - dx}
-		if antinode == p2 {
-			panic("went the wrong way!")
-		}
 		if !yield(antinode) {
 			return
 		}
 		antinode = Point{p2.Y + dy, p2.X + dx}
-		if antinode == p1 {
-			panic("went the wrong way!")
-		}
 		yield(antinode)
 	}
 }
@@ -118,26 +109,19 @@ func antinodes1(p1 Point, p2 Point) iter.Seq[Point] {
 func (m *Map) Part1() int {
 	var count int
 	seen := make(map[Point]bool)
-	for t, alist := range m.Antennas {
+	for _, alist := range m.Antennas {
 		for i, j := range combinations(len(alist)) {
 			p1 := alist[i]
 			p2 := alist[j]
-			fmt.Printf("finding antinodes of %c, %s & %s\n", t, p1, p2)
-			for antinode := range antinodes1(p1, p2) {
-				fmt.Printf("antinode %s: ", antinode)
+			for antinode := range antinodes1(m, p1, p2) {
 				// Is this point on the map?
 				if !m.InBounds(antinode) {
-					fmt.Println("out of bounds")
 					continue
 				}
-				c := m.At(antinode)
-				fmt.Printf("[%c] ", c)
 				// Check if this point is already an antinode
 				if _, ok := seen[antinode]; ok {
-					fmt.Println("already an antinode")
 					continue
 				}
-				fmt.Println("FOUND!!!")
 				seen[antinode] = true
 				count++
 			}
@@ -176,26 +160,18 @@ func antinodes2(m *Map, p1 Point, p2 Point) iter.Seq[Point] {
 func (m *Map) Part2() int {
 	var count int
 	seen := make(map[Point]bool)
-	for t, alist := range m.Antennas {
+	for _, alist := range m.Antennas {
 		for i, j := range combinations(len(alist)) {
 			p1 := alist[i]
 			p2 := alist[j]
-			fmt.Printf("finding antinodes of %c, %s & %s\n", t, p1, p2)
 			for antinode := range antinodes2(m, p1, p2) {
-				fmt.Printf("antinode %s: ", antinode)
 				// Is this point on the map?
 				if !m.InBounds(antinode) {
-					fmt.Println("out of bounds")
 					continue
 				}
-				c := m.At(antinode)
-				fmt.Printf("[%c] ", c)
-				// Check if this point is already an antinode
 				if _, ok := seen[antinode]; ok {
-					fmt.Println("already an antinode")
 					continue
 				}
-				fmt.Println("FOUND!!!")
 				seen[antinode] = true
 				count++
 			}
